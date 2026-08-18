@@ -69,14 +69,26 @@ In `TBC VoC Weekly Tracker` Sheet1 row 1:
 
 ## 3. Wire Cursor
 
+**URLs (this automation):**
+
+| Mode | URL |
+| --- | --- |
+| Production | `https://flows-webhook.stage.trimble-ai.com/agentic/workflows/v1/webhook/a0b6a896-f51e-4ca1-8616-10fc93c9d0ae` |
+| Test (Listen only) | `https://flows.stage.trimble-ai.com/agentic/workflows/v1/webhook-test/a0b6a896-f51e-4ca1-8616-10fc93c9d0ae` |
+
+Production (`flows-webhook…`) requires Trimble agentic gateway auth:
+
 ```bash
-# after pipeline
-export N8N_VOC_WEBHOOK_URL='https://flows.stage.trimble-ai.com/webhook/tbc-voc-weekly-path-a'
-node scripts/post-to-n8n-webhook.mjs --dry-run   # writes data/n8n-webhook-payload.json
-node scripts/post-to-n8n-webhook.mjs             # live POST
+# JWT must include header "kid" — n8n API keys alone return 401
+export N8N_WEBHOOK_AUTHORIZATION='Bearer <agentic-jwt-with-kid>'
+export N8N_VOC_WEBHOOK_URL='https://flows-webhook.stage.trimble-ai.com/agentic/workflows/v1/webhook/a0b6a896-f51e-4ca1-8616-10fc93c9d0ae'
+node scripts/post-to-n8n-webhook.mjs --dry-run
+node scripts/post-to-n8n-webhook.mjs
 ```
 
-Or set `config/voc-weekly-sources.json` → `n8n.webhook_url` (prefer env for secrets).
+Test mode (no auth): click **Execute workflow** / Listen in n8n, then POST to the **webhook-test** URL.
+
+`config/voc-weekly-sources.json` → `n8n.webhook_url` stores the production URL; prefer env overrides for auth secrets.
 
 ## 4. Webhook JSON schema (what Cursor posts)
 

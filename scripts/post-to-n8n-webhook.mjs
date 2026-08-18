@@ -33,6 +33,13 @@ function resolveWebhookUrl(cfg) {
   return null;
 }
 
+/** Optional Trimble agentic gateway auth, e.g. "Bearer eyJ…". */
+function resolveAuthHeader() {
+  const raw = (process.env.N8N_WEBHOOK_AUTHORIZATION || "").trim();
+  if (!raw) return null;
+  return raw.toLowerCase().startsWith("bearer ") ? raw : `Bearer ${raw}`;
+}
+
 function buildBody({ weekly, sheet, email }) {
   const artifacts = weekly.artifacts || {};
   const rows =
@@ -102,9 +109,23 @@ async function main() {
     process.exit(1);
   }
 
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+  const auth = resolveAuthHeader();
+  if (auth) {
+    headers.Authorization = auth;
+    console.log("Authorization: Bearer <redacted>");
+  } else if (webhookUrl.includes("flows-webhook.") || webhookUrl.includes("/webhook/")) {
+    console.warn(
+      "WARN: no N8N_WEBHOOK_AUTHORIZATION set — Trimble production webhook may return 401 (JWT kid required)."
+    );
+  }
+
   const res = await fetch(webhookUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers,
     body: JSON.stringify(body),
   });
 

@@ -35,8 +35,9 @@
   "n8n": {
     "enabled": true,
     "path": "A",
-    "webhook_url": "REPLACE_WITH_N8N_PRODUCTION_WEBHOOK_URL",
-    "notes": "Prefer env N8N_VOC_WEBHOOK_URL over committing the real URL. See n8n/path-a-setup.md."
+    "webhook_url": "https://flows-webhook.stage.trimble-ai.com/agentic/workflows/v1/webhook/a0b6a896-f51e-4ca1-8616-10fc93c9d0ae",
+    "webhook_test_url": "https://flows.stage.trimble-ai.com/agentic/workflows/v1/webhook-test/a0b6a896-f51e-4ca1-8616-10fc93c9d0ae",
+    "notes": "Production host requires Authorization Bearer JWT with kid (Trimble agentic gateway). Set env N8N_WEBHOOK_AUTHORIZATION='Bearer …' for live posts. Test URL works only while n8n is Listening. See n8n/path-a-setup.md."
   },
   "notes": "REPLACE_AFTER_DATE is filled at harvest time with (today - 7 days) as YYYY-MM-DD. Sheet/Doc writes use n8n Path A (scripts/post-to-n8n-webhook.mjs)."
 }
