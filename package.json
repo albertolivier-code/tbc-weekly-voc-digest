@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "pipeline": "node scripts/run-weekly-voc-pipeline.mjs"
+    "pipeline": "node scripts/run-weekly-voc-pipeline.mjs",
+    "post-n8n": "node scripts/post-to-n8n-webhook.mjs",
+    "post-n8n:dry": "node scripts/post-to-n8n-webhook.mjs --dry-run"
   },
   "engines": {
     "node": ">=18"

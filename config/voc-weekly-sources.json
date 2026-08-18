@@ -32,5 +32,11 @@
     "canvas_path": "data/voc-gap-canvas.json",
     "exclude_sources": ["community"]
   },
-  "notes": "REPLACE_AFTER_DATE is filled at harvest time with (today - 7 days) as YYYY-MM-DD."
+  "n8n": {
+    "enabled": true,
+    "path": "A",
+    "webhook_url": "REPLACE_WITH_N8N_PRODUCTION_WEBHOOK_URL",
+    "notes": "Prefer env N8N_VOC_WEBHOOK_URL over committing the real URL. See n8n/path-a-setup.md."
+  },
+  "notes": "REPLACE_AFTER_DATE is filled at harvest time with (today - 7 days) as YYYY-MM-DD. Sheet/Doc writes use n8n Path A (scripts/post-to-n8n-webhook.mjs)."
 }
