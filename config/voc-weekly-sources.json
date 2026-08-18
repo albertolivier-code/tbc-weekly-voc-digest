@@ -1,0 +1,36 @@
+{
+  "week_window_days": 7,
+  "sources": {
+    "news": {
+      "search_templates": [
+        {
+          "slug": "tbc-product-news",
+          "template": "\"Trimble Business Center\" OR \"Trimble TBC\" (release OR update OR feature) after:REPLACE_AFTER_DATE"
+        },
+        {
+          "slug": "survey-construction-software",
+          "template": "(\"survey software\" OR \"construction software\") (Trimble OR Autodesk OR Leica) after:REPLACE_AFTER_DATE"
+        },
+        {
+          "slug": "competitor-news",
+          "template": "(\"Civil 3D\" OR \"Leica Infinity\" OR Topcon) (survey OR CAD) after:REPLACE_AFTER_DATE"
+        }
+      ]
+    }
+  },
+  "artifacts": {
+    "spreadsheet_id": "REPLACE_WITH_GOOGLE_SHEET_ID",
+    "spreadsheet_tab": "Sheet1",
+    "doc_id": "REPLACE_WITH_GOOGLE_DOC_ID"
+  },
+  "email": {
+    "to": ["REPLACE_WITH_EMAIL@example.com"],
+    "subject_prefix": "[TBC VoC Weekly]"
+  },
+  "gap_sync": {
+    "enabled": true,
+    "canvas_path": "data/voc-gap-canvas.json",
+    "exclude_sources": ["community"]
+  },
+  "notes": "Pipeline replaces REPLACE_AFTER_DATE with YYYY-MM-DD for (today - 7 days). Fill artifact IDs and recipients before first live run."
+}

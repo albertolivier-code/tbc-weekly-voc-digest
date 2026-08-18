@@ -1,0 +1,23 @@
+{
+  "product": "Trimble Business Center",
+  "voc_phase2": {
+    "gmail_queries": [
+      {
+        "slug": "tbc-community-weekly",
+        "label": "TBC community / support threads",
+        "query": "REPLACE_ME newer_than:7d (subject:(TBC OR \"Business Center\") OR from:(community OR support))"
+      },
+      {
+        "slug": "tbc-feedback-weekly",
+        "label": "Direct customer feedback",
+        "query": "REPLACE_ME newer_than:7d (\"voice of customer\" OR VoC OR NPS OR \"feature request\") TBC"
+      },
+      {
+        "slug": "competitor-weekly",
+        "label": "Competitor mentions",
+        "query": "REPLACE_ME newer_than:7d (Civil 3D OR \"Leica Infinity\" OR Topcon OR \"competitor\") (survey OR construction) newer_than:7d"
+      }
+    ]
+  },
+  "notes": "Replace each query string with your real Gmail search. Keep slugs stable — they become export filenames."
+}

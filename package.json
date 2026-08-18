@@ -1,0 +1,11 @@
+{
+  "name": "tbc-weekly-voc-digest",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pipeline": "node scripts/run-weekly-voc-pipeline.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
