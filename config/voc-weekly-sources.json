@@ -19,12 +19,12 @@
     }
   },
   "artifacts": {
-    "spreadsheet_id": "REPLACE_WITH_GOOGLE_SHEET_ID",
+    "spreadsheet_id": "1gwLIGPawWsKloTZ7b5eTTimO7eg6QYRN9zTK93CaJ44",
     "spreadsheet_tab": "Sheet1",
-    "doc_id": "REPLACE_WITH_GOOGLE_DOC_ID"
+    "doc_id": "16fJf4eF3TLTau4-qyV64IOa0OeSC6tRC5AsQCWwqd7U"
   },
   "email": {
-    "to": ["REPLACE_WITH_EMAIL@example.com"],
+    "to": ["albert_olivier@trimble.com"],
     "subject_prefix": "[TBC VoC Weekly]"
   },
   "gap_sync": {
@@ -32,5 +32,5 @@
     "canvas_path": "data/voc-gap-canvas.json",
     "exclude_sources": ["community"]
   },
-  "notes": "Pipeline replaces REPLACE_AFTER_DATE with YYYY-MM-DD for (today - 7 days). Fill artifact IDs and recipients before first live run."
+  "notes": "REPLACE_AFTER_DATE is filled at harvest time with (today - 7 days) as YYYY-MM-DD."
 }
