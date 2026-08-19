@@ -1,0 +1,11 @@
+{
+  "messages": [
+    {
+      "id": "sample-c3d-001",
+      "subject": "Civil 3D COGO editor bug vs TBC survey workflow",
+      "snippet": "Comparing Civil 3D COGO friction with TBC survey import.",
+      "from": "forum@example.com",
+      "date": "2026-08-15T08:00:00Z"
+    }
+  ]
+}

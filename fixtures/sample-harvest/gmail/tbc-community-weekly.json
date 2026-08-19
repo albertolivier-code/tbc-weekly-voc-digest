@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "id": "sample-tbc-bug-001",
+      "subject": "TBC IFC Import error on 2026.10",
+      "snippet": "IFC Import fails with unexpected error when opening in TBC 2026.10.",
+      "from": "support@example.com",
+      "date": "2026-08-18T12:00:00Z"
+    },
+    {
+      "id": "sample-invite-001",
+      "subject": "Invitation: TBC On-demand updates @ Fri 21 Aug 2026",
+      "snippet": "You have been invited to attend an event.",
+      "from": "calendar-notification@google.com",
+      "date": "2026-08-17T20:00:00Z"
+    }
+  ]
+}
