@@ -4,10 +4,13 @@
  *
  * Reads MCP harvest JSON from data/mcp-exports/, builds:
  *   - data/voc-weekly-sheet-payload.json
+ *   - data/voc-weekly-tracker.csv      (IsNew rows in tracker schema)
+ *   - data/voc-weekly-digest.md
  *   - data/voc-weekly-email.json
- *   - data/voc-gap-canvas.json (gap sync for new non-community TBC problems)
+ *   - data/voc-gap-canvas.json
  *
- * Does not call Gmail/Sheets/Docs/email — the agent skill does that via MCP.
+ * Does not call Gmail/Drive/email — the agent skill does that via MCP.
+ * No n8n / Trimble webhook — those require a JWT we cannot provision.
  */
 
 import { createHash } from "node:crypto";
@@ -38,6 +41,104 @@ function daysAgoIsoDate(days) {
 function stableId(parts) {
   return createHash("sha256").update(parts.filter(Boolean).join("|")).digest("hex").slice(0, 16);
 }
+
+function csvEscape(value) {
+  const s = value == null ? "" : String(value);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function rowsToCsv(columns, rows) {
+  const lines = [columns.map(csvEscape).join(",")];
+  for (const row of rows) {
+    lines.push(columns.map((c) => csvEscape(row[c])).join(","));
+  }
+  return lines.join("\n") + "\n";
+}
+
+function weekOfFromLabel(weekLabel) {
+  const m = String(weekLabel).match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : daysAgoIsoDate(7);
+}
+
+function inferCategory(it) {
+  const blob = `${it.sourceSlug || ""} ${it.title || ""} ${it.snippet || ""}`.toLowerCase();
+  if (it.isCommunity || /community/.test(blob)) return "community";
+  if (/civil\s*3d|leica|topcon|openroads|competitor/.test(blob)) return "competitor";
+  return "tbc";
+}
+
+function inferProduct(category, title, snippet) {
+  const blob = `${title} ${snippet}`.toLowerCase();
+  if (category === "competitor") {
+    if (/civil\s*3d/.test(blob)) return "Autodesk Civil 3D";
+    if (/leica/.test(blob)) return "Leica Infinity";
+    if (/topcon/.test(blob)) return "Topcon";
+    if (/openroads|bentley/.test(blob)) return "Bentley OpenRoads Designer";
+    return "Competitor";
+  }
+  return "Trimble Business Center";
+}
+
+function inferWorkflow(title, snippet) {
+  const blob = `${title} ${snippet}`.toLowerCase();
+  if (/ifc|\bvcl\b|data exchange/.test(blob)) return "Data Exchange";
+  if (/\b(import|csv)\b/.test(blob)) return "Data Exchange";
+  if (/survey|cogo|coordinate|datum/.test(blob)) return "Survey";
+  if (/earthwork|takeoff|civil/.test(blob)) return "Civil / Takeoff";
+  if (/license|tls|subscription/.test(blob)) return "Licensing & Connect";
+  return "General";
+}
+
+function titleLooksNoisy(title, patterns) {
+  const t = String(title || "");
+  return (patterns || []).some((p) => {
+    try {
+      return new RegExp(p, "i").test(t);
+    } catch {
+      return false;
+    }
+  });
+}
+
+function toTrackerRow(it, weekOf) {
+  const category = inferCategory(it);
+  const competitive =
+    category === "competitor"
+      ? `Users report friction in ${inferProduct(category, it.title, it.snippet)}; evaluate TBC workflow advantage or migration path.`
+      : "";
+  return {
+    WeekOf: weekOf,
+    Category: category,
+    Product: inferProduct(category, it.title, it.snippet),
+    Problem: it.title,
+    Workflow: inferWorkflow(it.title, it.snippet),
+    Source: it.source,
+    URL: it.url,
+    Date: it.date,
+    Confidence: "medium",
+    MentionCount: 1,
+    IsNew: "yes",
+    CompetitiveInsight: competitive,
+    SuggestedTBCOpportunity: competitive,
+  };
+}
+
+const TRACKER_COLUMNS = [
+  "WeekOf",
+  "Category",
+  "Product",
+  "Problem",
+  "Workflow",
+  "Source",
+  "URL",
+  "Date",
+  "Confidence",
+  "MentionCount",
+  "IsNew",
+  "CompetitiveInsight",
+  "SuggestedTBCOpportunity",
+];
 
 async function readJson(file, fallback = null) {
   try {
@@ -126,19 +227,24 @@ function renderEmailBody({ weekLabel, rows, health, gapNew }) {
   lines.push("");
   lines.push(`New items this week: ${newRows.length}`);
   lines.push("");
+  lines.push("This week's tracker Sheet and digest Doc are created as new Google files");
+  lines.push("in Drive (TBC VoC Weekly folder). Links are added by the automation after upload.");
+  lines.push("");
   if (newRows.length === 0) {
     lines.push("No new VoC items in harvest exports.");
   } else {
-    for (const r of newRows.slice(0, 40)) {
+    for (const r of newRows.slice(0, 15)) {
       lines.push(`• [${r.Source}] ${r.Title}`);
-      if (r.Snippet) lines.push(`  ${r.Snippet}`);
       if (r.URL) lines.push(`  ${r.URL}`);
+    }
+    if (newRows.length > 15) {
       lines.push("");
+      lines.push(`…and ${newRows.length - 15} more in this week's Sheet.`);
     }
   }
   lines.push("");
   lines.push(`Gap sync (new non-community TBC problems): ${gapNew.length}`);
-  for (const g of gapNew.slice(0, 20)) {
+  for (const g of gapNew.slice(0, 10)) {
     lines.push(`- ${g.title}${g.url ? ` — ${g.url}` : ""}`);
   }
   return lines.join("\n");
@@ -246,6 +352,31 @@ async function main() {
     items.push(...newsItems);
   }
 
+  const noisePatterns =
+    community.voc_phase2?.gmail_noise_title_patterns ||
+    weekly.gmail_noise_title_patterns ||
+    [];
+  const kept = [];
+  let droppedNoise = 0;
+  for (const it of items) {
+    if (it.source === "gmail" && titleLooksNoisy(it.title, noisePatterns)) {
+      droppedNoise += 1;
+      continue;
+    }
+    kept.push(it);
+  }
+  if (droppedNoise) {
+    health.push({
+      kind: "gmail",
+      slug: "noise-filter",
+      status: "dropped_calendar_and_shares",
+      count: droppedNoise,
+    });
+  }
+  items.length = 0;
+  items.push(...kept);
+
+  const weekOf = weekOfFromLabel(weekLabel);
   const sheetRows = items.map((it) => {
     const isNew = !seenSet.has(it.id);
     return {
@@ -279,20 +410,50 @@ async function main() {
       snippet: r.Snippet,
     }));
 
+  const newSheetRows = sheetRows.filter((r) => r.IsNew);
+  const trackerRows = newSheetRows.map((r) =>
+    toTrackerRow(
+      {
+        source: r.Source,
+        sourceSlug: r.SourceSlug,
+        title: r.Title,
+        snippet: r.Snippet,
+        url: r.URL,
+        date: r.Date,
+        isCommunity: r.IsCommunity,
+      },
+      weekOf,
+    ),
+  );
+  const docSection = renderDocSection({ weekLabel, rows: sheetRows, gapNew });
+
   const emailCfg = weekly.email || {};
   const subjectPrefix = emailCfg.subject_prefix || "[TBC VoC Weekly]";
+  const driveFolderId = weekly.artifacts?.drive_folder_id || null;
+  const companion = {
+    drive_folder_id: driveFolderId,
+    csv_path: "data/voc-weekly-tracker.csv",
+    digest_path: "data/voc-weekly-digest.md",
+    sheet_title: `TBC VoC Weekly — ${weekLabel}`,
+    doc_title: `TBC VoC Weekly Digest — ${weekLabel}`,
+    skip_if_empty: true,
+  };
   const email = {
     to: emailCfg.to || [],
     subject: `${subjectPrefix} ${weekLabel} — ${newIds.length} new`,
     body: renderEmailBody({ weekLabel, rows: sheetRows, health, gapNew }),
-    doc_section: renderDocSection({ weekLabel, rows: sheetRows, gapNew }),
+    doc_section: docSection,
     artifacts: weekly.artifacts || {},
+    companion,
     meta: {
       generated_at: isoNow(),
       week_label: weekLabel,
       after_date: afterDate,
+      week_of: weekOf,
       new_count: newIds.length,
       total_count: sheetRows.length,
+      dropped_noise: droppedNoise,
+      write_path: "drive_create_file",
     },
   };
 
@@ -334,7 +495,10 @@ async function main() {
     problems: mergedProblems,
   };
 
+  await fs.mkdir(DATA, { recursive: true });
   await writeJson(path.join(DATA, "voc-weekly-sheet-payload.json"), sheetPayload);
+  await fs.writeFile(path.join(DATA, "voc-weekly-tracker.csv"), rowsToCsv(TRACKER_COLUMNS, trackerRows));
+  await fs.writeFile(path.join(DATA, "voc-weekly-digest.md"), docSection + "\n");
   await writeJson(path.join(DATA, "voc-weekly-email.json"), email);
   await writeJson(canvasPath, canvas);
 
@@ -350,15 +514,16 @@ async function main() {
   }
   console.log(`Items total: ${sheetRows.length}`);
   console.log(`IsNew rows: ${newIds.length}`);
+  console.log(`Dropped Gmail noise: ${droppedNoise}`);
   console.log(`Gap sync ran: ${canvas.gap_sync_ran} (new non-community: ${gapNew.length})`);
   console.log(`Wrote: data/voc-weekly-sheet-payload.json`);
+  console.log(`Wrote: data/voc-weekly-tracker.csv (${trackerRows.length} rows)`);
+  console.log(`Wrote: data/voc-weekly-digest.md`);
   console.log(`Wrote: data/voc-weekly-email.json`);
   console.log(`Wrote: ${path.relative(ROOT, canvasPath)}`);
+  console.log(`Write path: Drive create_file into folder ${driveFolderId || "(unset)"}`);
   if ((email.to || []).some((t) => String(t).includes("REPLACE_WITH"))) {
-    console.warn("WARN: email.to still contains placeholders — fill config/voc-weekly-sources.json before send_email.");
-  }
-  if (String(weekly.artifacts?.spreadsheet_id || "").includes("REPLACE_WITH")) {
-    console.warn("WARN: spreadsheet_id placeholder still set — fill artifacts before sheet append.");
+    console.warn("WARN: email.to still contains placeholders — fill config/voc-weekly-sources.json before send.");
   }
 }
 

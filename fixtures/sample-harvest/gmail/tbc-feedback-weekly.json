@@ -1,0 +1,11 @@
+{
+  "messages": [
+    {
+      "id": "sample-feedback-001",
+      "subject": "Feature request: VoC export from TBC Assistant",
+      "snippet": "Customer asked for a Voice of Customer export from TBC Assistant.",
+      "from": "pm@example.com",
+      "date": "2026-08-16T09:00:00Z"
+    }
+  ]
+}
