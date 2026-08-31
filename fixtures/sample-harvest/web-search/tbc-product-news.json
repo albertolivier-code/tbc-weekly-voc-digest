@@ -1,0 +1,12 @@
+{
+  "query": "\"Trimble Business Center\" after:2026-08-12",
+  "fetched_at": "2026-08-19T14:00:00Z",
+  "results": [
+    {
+      "title": "TBC 2026.10 Release Notes",
+      "url": "https://help.fieldsystems.trimble.com/tbc/release-notes/2026.10.htm",
+      "snippet": "Dark theme (beta), TBC Assistant (Beta), ANZ Toolbox integration.",
+      "date": "2026-06-23"
+    }
+  ]
+}
