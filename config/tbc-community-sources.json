@@ -5,19 +5,28 @@
       {
         "slug": "tbc-community-weekly",
         "label": "TBC community / support threads",
-        "query": "REPLACE_ME newer_than:7d (subject:(TBC OR \"Business Center\") OR from:(community OR support))"
+        "query": "newer_than:7d (TBC OR \"Business Center\") (bug OR error OR issue OR support OR workflow OR request OR community) -subject:Invitation -subject:Accepted -subject:\"Document shared\" -subject:Notes -subject:\"checklist item\""
       },
       {
         "slug": "tbc-feedback-weekly",
         "label": "Direct customer feedback",
-        "query": "REPLACE_ME newer_than:7d (\"voice of customer\" OR VoC OR NPS OR \"feature request\") TBC"
+        "query": "newer_than:7d (\"voice of customer\" OR VoC OR NPS OR \"feature request\" OR \"customer feedback\") (TBC OR \"Business Center\")"
       },
       {
         "slug": "competitor-weekly",
         "label": "Competitor mentions",
-        "query": "REPLACE_ME newer_than:7d (Civil 3D OR \"Leica Infinity\" OR Topcon OR \"competitor\") (survey OR construction) newer_than:7d"
+        "query": "newer_than:7d (\"Civil 3D\" OR \"Leica Infinity\" OR Topcon OR OpenRoads) (survey OR construction OR CAD OR TBC)"
       }
+    ],
+    "gmail_noise_title_patterns": [
+      "^Accepted:",
+      "^Invitation:",
+      "^Notes:",
+      "^Document shared",
+      "checklist item Completed",
+      "has accepted this invitation",
+      "Adjustment of Status"
     ]
   },
-  "notes": "Replace each query string with your real Gmail search. Keep slugs stable — they become export filenames."
+  "notes": "Queries are Gmail search syntax for search_threads. Noise patterns drop calendar/share mail the pipeline still sees."
 }
