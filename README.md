@@ -13,12 +13,14 @@ data/mcp-exports/gmail/
 data/mcp-exports/web-search/
 ```
 
+`data/` is gitignored (mailbox / customer harvest content).
+
 ## One-time setup
 
-1. Edit `config/tbc-community-sources.json` — replace `REPLACE_ME` Gmail queries.
-2. Edit `config/voc-weekly-sources.json` — set `artifacts.spreadsheet_id`, `artifacts.doc_id`, and `email.to`.
+1. Confirm Gmail queries in `config/tbc-community-sources.json`.
+2. Confirm `artifacts.drive_folder_id` and `email.to` in `config/voc-weekly-sources.json`.
 3. In Cursor: connect GitHub → this repo, then set automation **Repositories** to this single repo.
-4. Attach MCP tools on the automation: Gmail search, Sheets append, Docs append, send email.
+4. Attach MCP tools: Gmail `search_threads` + `send_message`, Google Drive `create_file`, web search.
 
 ## Local dry-run
 
@@ -30,3 +32,5 @@ node scripts/run-weekly-voc-pipeline.mjs
 ## Automation flow
 
 See `.cursor/skills/tbc-weekly-voc-digest/SKILL.md`.
+
+Weekly writes create new Sheet + Doc companions in the Drive folder (living archive Sheet/Doc IDs are reference-only).
