@@ -19,6 +19,7 @@
     }
   },
   "artifacts": {
+    "drive_folder_id": "1xf6gyQXPV0FpiLaddERBGegszIOR-gw9",
     "spreadsheet_id": "1gwLIGPawWsKloTZ7b5eTTimO7eg6QYRN9zTK93CaJ44",
     "spreadsheet_tab": "Sheet1",
     "doc_id": "16fJf4eF3TLTau4-qyV64IOa0OeSC6tRC5AsQCWwqd7U"
@@ -32,5 +33,9 @@
     "canvas_path": "data/voc-gap-canvas.json",
     "exclude_sources": ["community"]
   },
-  "notes": "REPLACE_AFTER_DATE is filled at harvest time with (today - 7 days) as YYYY-MM-DD."
+  "n8n": {
+    "enabled": false,
+    "notes": "Disabled. Production webhook needs a Trimble JWKS JWT we cannot get. Weekly writes use Drive create_file instead."
+  },
+  "notes": "REPLACE_AFTER_DATE is filled at harvest time with (today - 7 days) as YYYY-MM-DD. Living Sheet/Doc IDs are archive references; each Monday creates new companion files in drive_folder_id."
 }
